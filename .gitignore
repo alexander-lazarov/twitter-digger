@@ -95,3 +95,6 @@ output/
 
 ### databases
 *.db
+
+### config
+config.py
