@@ -10,6 +10,7 @@ class User(Base):
 
     id = Column(Integer, primary_key=True)
     screen_name = Column(String)
+    source = Column(String)
     friends_count = Column(Integer)
     followers_count = Column(Integer)
     tweets = relationship('Tweet', back_populates='user')

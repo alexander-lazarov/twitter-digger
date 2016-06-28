@@ -50,7 +50,7 @@ class Downloader():
         self.api = api
         self.session = session
 
-    def handle_user(self, username):
+    def handle_user(self, username, source):
         username = normalize_twitter(username)
         print('Querying user: {}'.format(username))
 
@@ -66,6 +66,7 @@ class Downloader():
             user = User()
 
         user.id = user_data.id
+        user.source = source
         user.screen_name = user_data.screen_name
         user.friends_count = user_data.friends_count
         user.followers_count = user_data.followers_count
@@ -137,4 +138,4 @@ with open(args.user_list) as inp:
 
     reader = csv.DictReader(inp)
     for row in reader:
-        downloader.handle_user(row['user'])
+        downloader.handle_user(row['user'], row['source'])
