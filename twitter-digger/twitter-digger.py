@@ -2,6 +2,7 @@ import argparse
 import csv
 import tweepy
 import config
+import re
 from models import User, Tweet, Entity
 from sqlalchemy import create_engine
 from models import Base
@@ -28,12 +29,29 @@ args_parser.add_argument(
 args = args_parser.parse_args()
 
 
+def normalize_twitter(url):
+    if re.match(r'^[A-Za-z0-9_]{1,15}$', url):
+        return url
+
+    if re.match(r'^@[A-Za-z0-9_]{1,15}$', url):
+        return url[1:]
+
+    match = re.match(
+        r'^https?://(www\.)?twitter.com/([A-Za-z0-9_]{1,15})$', url)
+
+    if match:
+        return match.group(2)
+
+    return ''
+
+
 class Downloader():
     def __init__(self, api, session):
         self.api = api
         self.session = session
 
     def handle_user(self, username):
+        username = normalize_twitter(username)
         print('Querying user: {}'.format(username))
 
         try:
@@ -57,7 +75,12 @@ class Downloader():
         self.session.commit()
 
     def _handle_tweets(self, user):
-        tweets = self.api.user_timeline(row['user'], count=200)
+
+        try:
+            tweets = self.api.user_timeline(user.screen_name, count=200)
+        except tweepy.error.TweepError:
+            print('Error downloading tweets for {}'.format(user.screen_name))
+
         for tweet_data in tweets:
             tweet = self.session.query(Tweet).get(tweet_data.id)
 
