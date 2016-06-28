@@ -39,6 +39,11 @@ Then you need to install packages dependencies:
 pip install -r requirements.txt
 ```
 
+## Configuring ##
+
+Copy `config.py.example` to `config.py` and fill in application keys. You can
+obtain them from [here](https://apps.twitter.com/).
+
 ## Running ##
 
 It requires a CSV file with 2 columns and a header. Example:
