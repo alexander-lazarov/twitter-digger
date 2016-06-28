@@ -81,6 +81,7 @@ class Downloader():
             tweets = self.api.user_timeline(user.screen_name, count=200)
         except tweepy.error.TweepError:
             print('Error downloading tweets for {}'.format(user.screen_name))
+            return
 
         for tweet_data in tweets:
             tweet = self.session.query(Tweet).get(tweet_data.id)
