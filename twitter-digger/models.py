@@ -34,4 +34,3 @@ class Entity(Base):
     tweet = relationship('Tweet', back_populates='entities')
     category = Column(String)
     content = Column(String)
-
