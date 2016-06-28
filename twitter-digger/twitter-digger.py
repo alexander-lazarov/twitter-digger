@@ -2,7 +2,7 @@ import argparse
 import csv
 import tweepy
 import config
-from models import User, Tweet
+from models import User, Tweet, Entity
 from sqlalchemy import create_engine
 from models import Base
 from sqlalchemy.orm import sessionmaker
@@ -53,6 +53,8 @@ class Downloader():
         user.followers_count = user_data.followers_count
 
         self._handle_tweets(user)
+        self.session.add(user)
+        self.session.commit()
 
     def _handle_tweets(self, user):
         tweets = self.api.user_timeline(row['user'], count=200)
@@ -61,6 +63,9 @@ class Downloader():
 
             if tweet is None:
                 tweet = Tweet()
+                is_new = True
+            else:
+                is_new = False
 
             tweet.id = tweet_data.id
             tweet.text = tweet_data.text
@@ -68,12 +73,35 @@ class Downloader():
             tweet.user = user
 
             self.session.add(tweet)
+            self.session.commit()
+
+            if is_new:
+                print('Saving entities for tweet {}'.format(tweet.id))
+                self._handle_entities(tweet, tweet_data)
+                self.session.commit()
+            else:
+                print('Skipping entities for tweet {}'.format(tweet.id))
 
         print('Downloaded {} tweets for user {}'.format(
             len(tweets), user.screen_name))
 
-        self.session.add(user)
         self.session.commit()
+
+    def _handle_entities(self, tweet, tweet_data):
+        for category in tweet_data.entities:
+            for entity_data in tweet_data.entities[category]:
+                content = ''
+
+                if category == 'urls':
+                    content = entity_data['expanded_url']
+                if category == 'hashtags':
+                    content = entity_data['text']
+                if category == 'user_mentions':
+                    content = entity_data['screen_name']
+
+                entity = Entity(
+                    category=category, tweet=tweet, content=content)
+                self.session.add(entity)
 
 
 with open(args.user_list) as inp:
