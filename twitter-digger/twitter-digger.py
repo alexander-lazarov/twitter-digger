@@ -2,7 +2,7 @@ import argparse
 import csv
 import tweepy
 import config
-from models import User
+from models import User, Tweet
 from sqlalchemy import create_engine
 from models import Base
 from sqlalchemy.orm import sessionmaker
@@ -16,7 +16,7 @@ def api_factory():
 
 
 def session_factory():
-    engine = create_engine('sqlite:///db.db', echo=True)
+    engine = create_engine('sqlite:///db.db', echo=False)
     Base.metadata.create_all(engine)
     Session = sessionmaker(bind=engine)
     return Session()
@@ -40,7 +40,6 @@ with open(args.user_list) as inp:
 
         try:
             user_data = api.get_user(row['user'])
-            print('{}: {}'.format(user_data.screen_name, user_data.id))
         except tweepy.error.TweepError:
             print('User {} not found'.format(row['user']))
             continue
@@ -54,6 +53,23 @@ with open(args.user_list) as inp:
         user.screen_name = user_data.screen_name
         user.friends_count = user_data.friends_count
         user.followers_count = user_data.followers_count
+
+        tweets = api.user_timeline(row['user'], count=200)
+        for tweet_data in tweets:
+            tweet = session.query(Tweet).get(tweet_data.id)
+
+            if tweet is None:
+                tweet = Tweet()
+
+            tweet.id = tweet_data.id
+            tweet.text = tweet_data.text
+            tweet.retweet_count = tweet_data.retweet_count
+            tweet.user = user
+
+            session.add(tweet)
+
+        print('Downloaded {} tweets for user {}'.format(
+            len(tweets), row['user']))
 
         session.add(user)
         session.commit()

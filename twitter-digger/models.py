@@ -1,13 +1,25 @@
+from sqlalchemy import Column, Integer, String, ForeignKey
+from sqlalchemy.orm import relationship
 from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy import Column, Integer, String
 
 Base = declarative_base()
 
 
 class User(Base):
-    __tablename__ = 'Users'
+    __tablename__ = 'users'
 
     id = Column(Integer, primary_key=True)
     screen_name = Column(String)
     friends_count = Column(Integer)
     followers_count = Column(Integer)
+    tweets = relationship('Tweet', back_populates="user")
+
+
+class Tweet(Base):
+    __tablename__ = 'tweets'
+
+    id = Column(Integer, primary_key=True)
+    user_id = Column(Integer, ForeignKey('users.id'))
+    user = relationship('User', back_populates='tweets')
+    text = Column(String)
+    retweet_count = Column(Integer)
