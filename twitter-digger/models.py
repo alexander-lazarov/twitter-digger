@@ -13,6 +13,8 @@ class User(Base):
     source = Column(String)
     friends_count = Column(Integer)
     followers_count = Column(Integer)
+    description = Column(String)
+    bio_url = Column(String)
     tweets = relationship('Tweet', back_populates='user')
 
 

@@ -70,6 +70,8 @@ class Downloader():
         user.screen_name = user_data.screen_name
         user.friends_count = user_data.friends_count
         user.followers_count = user_data.followers_count
+        user.description = user_data.description
+        user.bio_url = user_data.url
 
         self._handle_tweets(user)
         self.session.add(user)
