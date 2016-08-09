@@ -26,6 +26,10 @@ def session_factory():
 args_parser = argparse.ArgumentParser()
 args_parser.add_argument(
     "user_list", help="CSV file containing <source, user> pairs")
+args_parser.add_argument(
+    "-s", "--skip-user-tweets",
+    help="Download user info only (skip downloading tweets)",
+    action="store_true")
 args = args_parser.parse_args()
 
 
@@ -73,7 +77,8 @@ class Downloader():
         user.description = user_data.description
         user.bio_url = user_data.url
 
-        self._handle_tweets(user)
+        if not args.skip_user_tweets:
+            self._handle_tweets(user)
         self.session.add(user)
         self.session.commit()
 
@@ -132,8 +137,6 @@ class Downloader():
 
 
 with open(args.user_list) as inp:
-    reader = csv.reader
-
     api = api_factory()
     session = session_factory()
 
